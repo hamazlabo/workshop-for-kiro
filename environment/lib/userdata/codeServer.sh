@@ -1,4 +1,10 @@
 #!/bin/bash
+# cloud-init は root で実行されるが HOME が未設定のため、$HOME を参照する
+# インストーラ（code-server / Kiro CLI 等）が "HOME: parameter not set" で失敗する。
+# 明示的に HOME を設定し、ダウンロード物の置き場所も固定する。
+export HOME=/root
+cd /root
+
 sudo apt update
 sudo apt install -y pwgen jq curl zip unzip
 
@@ -23,7 +29,6 @@ rm -rf aws-sam-cli-linux-x86_64.zip sam-installation/
 curl -fsSL https://cli.kiro.dev/install | bash
 sudo dpkg -i kiro-cli.deb
 sudo apt-get install -f
-export PATH="$HOME/.local/bin:$PATH"
 
 # Python 3.14のインストール（deadsnakes PPAから最新版を導入）
 sudo apt install -y software-properties-common
@@ -42,18 +47,12 @@ sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.14 1
 # Node.jsのインストール
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt update
-sudo apt install nodejs
+sudo apt install -y nodejs
 
-# code-sererの最新バージョンを取得
-CODER_VERSION=$(curl -s https://api.github.com/repos/coder/code-server/releases/latest | jq -r .tag_name | sed 's/v//')
-
-# ダウンロードURLを組み立て
-DOWNLOAD_URL="https://github.com/coder/code-server/releases/download/v${CODER_VERSION}/code-server_${CODER_VERSION}_amd64.deb"
-
-# ダウンロードしてインストール
-curl -fOL ${DOWNLOAD_URL}
-sudo apt install -y ./code-server_${CODER_VERSION}_amd64.deb
-rm -f code-server_${CODER_VERSION}_amd64.deb
+# code-server のインストール（公式インストールスクリプト）
+# 版数解決・アーキ判定・systemd ユニット(code-server@)登録まで自動で行うため、
+# GitHub API + 手動 .deb 取得よりも堅牢（API のレート制限/非JSON応答で失敗しない）
+curl -fsSL https://code-server.dev/install.sh | sh
 
 # セットアップ
 mkdir -p /home/ubuntu/.config/code-server/
