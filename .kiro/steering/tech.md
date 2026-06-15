@@ -22,7 +22,36 @@
   ```
 - **公開 URL**: `http://<パブリックIP>:8080`
 
-## 2 回目: AI チャット（Strands Agents + Streamlit）
+## 2 回目: データ分析
+
+- **構成**: インタラクティブな分析には streamlit を利用
+  - 公開 URL: `http://<パブリックIP>:8501`
+
+### レポート保存（PDF）: ReportLab
+
+ファイルとして分析レポートを保存する場合は **ReportLab** を使う。日本語フォント問題（豆腐・フォント未検出）を標準機能で回避でき、システム依存がなく安定するため。
+
+- インストール（`pip` のみ、システムライブラリ不要）:
+  ```bash
+  pip install reportlab
+  ```
+- **日本語は組み込み CID フォントを使う**（フォントファイル不要）:
+  ```python
+  from reportlab.pdfbase import pdfmetrics
+  from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+
+  pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))  # ゴシック体
+  # 明朝体が必要なら "HeiseiMin-W3" を登録する
+  ```
+- **グラフの埋め込み**: matplotlib で PNG を出力し、`Image` フローアブルで配置する。
+  ```python
+  from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Spacer
+  # fig.savefig("chart.png", dpi=150, bbox_inches="tight") した PNG を Image("chart.png", ...) で配置
+  ```
+- **グラフ内の日本語**（タイトル・軸ラベル）は別問題。matplotlib 側で `japanize-matplotlib` か Noto フォントを指定する（streamlit でのグラフ作成時と同じ設定を流用すること）。
+- 出力先はプロジェクト内の `workspace/` 配下に保存する。
+
+## 3 回目: AI チャット（Strands Agents + Streamlit）
 
 ### エージェントフレームワーク: Strands Agents
 

@@ -23,6 +23,7 @@ rm -rf aws-sam-cli-linux-x86_64.zip sam-installation/
 curl -fsSL https://cli.kiro.dev/install | bash
 sudo dpkg -i kiro-cli.deb
 sudo apt-get install -f
+export PATH="$HOME/.local/bin:$PATH"
 
 # Python 3.14のインストール（deadsnakes PPAから最新版を導入）
 sudo apt install -y software-properties-common
@@ -74,6 +75,25 @@ REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/lates
 
 # SSMパラメータを作成
 aws ssm put-parameter --name "/workshop/code-server/${INSTANCE_ID}/password" --value "${PASSWORD}" --type "SecureString" --description "Code-server password for instance ${INSTANCE_ID}" --region ${REGION} --overwrite
+
+# 参加者向け README を /home/ubuntu 直下に作成
+cat > /home/ubuntu/README.md << 'EOF'
+# README
+
+## 手順書のダウンロード
+
+> git clone https://github.com/hamazlabo/workshop-for-kiro.git
+
+## Kiro が起動しない場合
+
+```bash
+curl -fsSL https://cli.kiro.dev/install | bash
+sudo dpkg -i kiro-cli.deb
+sudo apt-get install -f
+export PATH="$HOME/.local/bin:$PATH"
+```
+EOF
+chown ubuntu:ubuntu /home/ubuntu/README.md
 
 # サービス開始
 sudo systemctl enable --now code-server@ubuntu
